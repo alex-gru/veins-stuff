@@ -3,12 +3,14 @@ package com.example.App;
 import android.content.Context;
 import android.hardware.Camera;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.*;
 
 import java.io.IOException;
+import java.util.List;
 
-/** A basic Camera preview class */
+/**
+ * A basic Camera preview class
+ */
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
     private SurfaceHolder mHolder;
     private Camera mCamera;
@@ -28,6 +30,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     public void surfaceCreated(SurfaceHolder holder) {
         // The Surface has been created, now tell the camera where to draw the preview.
         try {
+            setSystemUiVisibility(SYSTEM_UI_FLAG_IMMERSIVE);
             mCamera.setDisplayOrientation(90);
             mCamera.setPreviewDisplay(holder);
             mCamera.startPreview();
@@ -44,7 +47,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         // If your preview can change or rotate, take care of those events here.
         // Make sure to stop the preview before resizing or reformatting it.
 
-        if (mHolder.getSurface() == null){
+        if (mHolder.getSurface() == null) {
             // preview surface does not exist
             return;
         }
@@ -52,20 +55,30 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         // stop preview before making changes
         try {
             mCamera.stopPreview();
-        } catch (Exception e){
+        } catch (Exception e) {
             // ignore: tried to stop a non-existent preview
         }
 
         // set preview size and make any resize, rotate or
         // reformatting changes here
+        Camera.Parameters parameters = mCamera.getParameters();
+        List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+        Camera.Size previewSize = previewSizes.get(0);
+
+        parameters.setPreviewSize(previewSize.width, previewSize.height);
+        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
+        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+
+        mCamera.setParameters(parameters);
 
         // start preview with new settings
         try {
             mCamera.setPreviewDisplay(mHolder);
             mCamera.startPreview();
 
-        } catch (Exception e){
+        } catch (Exception e) {
             Log.d(MainActivity.TAG, "Error starting camera preview: " + e.getMessage());
         }
     }
+
 }
