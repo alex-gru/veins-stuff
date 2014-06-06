@@ -422,7 +422,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             return filtered;
         } else if (passOriginFrameWithCanny) {
             Mat edges = new Mat(frame.rows(), frame.cols(), CvType.CV_8UC4);
-            Imgproc.Canny(inputFrame.gray(), edges, 110, 110);
+            Imgproc.Canny(inputFrame.gray(), edges, 40, 40);
 
             currentHandCutout = new Mat(edges.rows(), edges.cols(), edges.type());
             edges.copyTo(currentHandCutout);
@@ -514,7 +514,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 
         // filter points with certain maxDiff threshold
-        double maxDiff = 150;
+        double maxDiff = 100;
         final double MAX_VAL = 999999;
         for (int i = 0; i < distancePoints.size(); i++) {
             if (distancePointsDistances.get(i) < minimum + maxDiff
@@ -583,22 +583,40 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         int startPointIndex = -1;
         int endPointIndex = -1;
 
-        // find reference 1
-        startPointIndex = 0;
+        //find most-centered 2 local minima
+        Point[] centerPoints = new Point[2];
+        double[] y_diffs_to_center_of_center_points = new double[2];
 
-        startPoint = localMinimaPoints.get(startPointIndex);
-//        startPoint.x = startPoint.x;
-//        startPoint.y = startPoint.y + 100;
-        startPoint = new Point(centerPosition.x - 200, centerPosition.y - 200);
+        centerPoints[0] = localMinimaPoints.get(0);
+        centerPoints[1] = localMinimaPoints.get(localMinimaPoints.size() - 1);
 
+        y_diffs_to_center_of_center_points[0] = Math.abs(localMinimaPoints.get(0).y - centerPosition.y);
+        y_diffs_to_center_of_center_points[1] = Math.abs(localMinimaPoints.get(localMinimaPoints.size() - 1).y - centerPosition.y);
 
-        // find reference 2
-        endPointIndex = localMinimaPoints.size() - 1;
+        for (int i = 1; i < localMinimaPoints.size() - 1; i++) {
+            Point current = localMinimaPoints.get(i);
+            double y_diff_to_center = Math.abs(current.y - centerPosition.y);
+            if (current.y <= centerPosition.y
+                    && y_diff_to_center < y_diffs_to_center_of_center_points[0]) {
+                centerPoints[0] = current;
+                y_diffs_to_center_of_center_points[0] = y_diff_to_center;
+            } else if (current.y > centerPosition.y
+                    && y_diff_to_center < y_diffs_to_center_of_center_points[1]) {
+                centerPoints[1] = current;
+                y_diffs_to_center_of_center_points[1] = y_diff_to_center;
+            }
+        }
 
-//        endPoint = localMinimaPoints.get(endPointIndex);
-//        endPoint.x = startPoint.x + 400;
-//        endPoint.y = startPoint.y + 400;
-        endPoint = new Point(centerPosition.x + 200, centerPosition.y + 200);
+        Core.circle(minimaMat, centerPoints[0], 10, new Scalar(255, 0, 255), 5);
+        Core.circle(minimaMat, centerPoints[1], 10, new Scalar(255, 0, 255), 5);
+        Highgui.imwrite("/sdcard/distance_centerPoints.png", minimaMat);
+
+        startPoint = centerPoints[0];
+        startPoint.x += 50;
+        startPoint.y -= 50;
+        endPoint = centerPoints[1];
+        endPoint.y += 50;
+        endPoint.x = startPoint.x + (endPoint.y - startPoint.y);
 
         Core.rectangle(currentFrame, startPoint, endPoint, new Scalar(0, 0, 255), 10);
         Core.rectangle(minimaMat, startPoint, endPoint, new Scalar(0, 0, 255), 10);
