@@ -3,6 +3,7 @@ import java.io.FilenameFilter;
 
 /**
  * User: alexgru
+ * This class provides some snippets, which were needed frequently, e.g. naming conventions etc..
  */
 public class Regexer {
     public static void main(String[] args) {
