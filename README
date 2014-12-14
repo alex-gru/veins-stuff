@@ -1,1 +1,5 @@
 Bachelor thesis 2014 - Biometrische Verfahren im mobilen Bereich
+Module "App" - some playground stuff
+Module "DB ROI extraction" - automated hand vein database roi extraction procedure
+Module "Veins" - An experimental setup, where an alpha version of a mobile ROI extraction is used
+Module "Regex" - a helper for renaming purposes or other things
